@@ -1,20 +1,32 @@
 import {Text, View, StyleSheet} from 'react-native';
-import React, {Component} from 'react';
+import React, {useEffect, useState} from 'react';
 
-export class App extends Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>THis is the App</Text>
-      </View>
-    );
-  }
-}
+const App = () => {
+  const [data, setData] = useState(null);
+  const fetchData = async () => {
+    const response = await fetch('http://10.0.2.2:5000/api/data');
+
+    const jsonData = await response.json();
+    setData(jsonData);
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>This is the App</Text>
+      <Text style={styles.text}>{data ? data.message : 'Loading'}</Text>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
-  // Add styles here
   container: {
     flex: 1,
     backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     color: '#ffffff',
