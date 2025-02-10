@@ -4,26 +4,25 @@ from twilio.rest import Client
 from dotenv import load_dotenv
 import os
 import mysql.connector
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity,  create_refresh_token
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['JWT_SECRET_KEY'] = '8769op@#$%^drhfdDgsdg/'
+# loading from env
+load_dotenv()
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=0.2) 
 jwt = JWTManager(app)
 
-# loading from env
-
-load_dotenv()
-
 # establishing connection between server and database
 connection = mysql.connector.connect(
-    user = 'root',
-    password = 'irshad12345.',
-    host =  'localhost',
-    database =  'USER_INFO'
+    user = os.getenv('DB_USER'),
+    password = os.getenv('DB_PASSWORD'),
+    host =  os.getenv('DB_HOST'),
+    database =  os.getenv('DB_NAME')
 )
 
 # configuring twillio
