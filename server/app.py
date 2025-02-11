@@ -6,6 +6,7 @@ import os
 import mysql.connector
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
+import bcrypt
 
 app = Flask(__name__)
 CORS(app)
@@ -46,6 +47,10 @@ def notify():
     cursor = connection.cursor()
     cursor.execute("SELECT CONTACT_NUMBER FROM USER_CONTACT_LIST WHERE user_id = %s", (user_id,))
     contacts = cursor.fetchall()
+
+    if not contacts:
+        return jsonify({"msg": "No contacts found", "response": "failure"}), 404
+
     latitude = request.form.get('latitude')
     longitude = request.form.get('longitude')
     label = "Please reach out me at given location i need emergency help"
@@ -56,7 +61,7 @@ def notify():
         client.messages.create(
             body=message,
             from_=twilio_phone_number,
-            to=contact
+            to=contact[0]
         )
     return jsonify({"msg":"Message sent successfully","response": "success"}), 200
 
@@ -76,11 +81,11 @@ def register():
     if user_exists :
         return jsonify({"msg":"username already taken", "response" :"failure"}), 400
     try:
-        cursor.execute("INSERT INTO user_records (user_name, user_password) VALUES (%s,%s)",(username, password))
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        cursor.execute("INSERT INTO user_records (user_name, user_password) VALUES (%s,%s)",(username, hashed_password))
         connection.commit()
         return jsonify({"msg": "Registered successfully", "response" :"success"}), 201
     except mysql.connector.Error as err:
-        print(err)
         return jsonify({"msg": str(err), "response": "failure"}), 500
     finally:
         cursor.close()
@@ -93,19 +98,25 @@ def login():
     password = request.form.get('userPassword')
      
     if not name or not password:
-        return jsonify({"msg":"Enter details", "response": "failure"})
+        return jsonify({"msg": "Enter details", "response": "failure"})
+    
     cursor = connection.cursor(dictionary=True)
 
-
-    query = "SELECT user_id FROM user_records WHERE user_name = %s AND user_password = %s  LIMIT 1"
-    cursor.execute(query , (name,password))
+    # Update the query to also select the user_password
+    query = "SELECT user_id, user_password FROM user_records WHERE user_name = %s LIMIT 1"
+    cursor.execute(query, (name,))
     user = cursor.fetchone()
      
     cursor.close()
-    if user :
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['user_password'].encode('utf-8')):
+        # Correct password, generate the JWT token
         access_token = create_access_token(identity=str(user['user_id']))
         return jsonify({"token": access_token, "user_id": user['user_id'], "user_name": name.capitalize()}), 200
-    return jsonify({"msg": "Either username or password is invalid", "response":"failure"}), 401
+    
+    # If no match found or password is incorrect
+    return jsonify({"msg": "Either username or password is invalid", "response": "failure"}), 401
+
 
 # Add Contact ()
 @app.route('/add-contact', methods=['POST'])
@@ -113,12 +124,13 @@ def login():
 def add_contact():
     data = request.json
     contact_number = data.get('contact_number')
-    print(contact_number)
-    user_id = get_jwt_identity()  
+    user_id = get_jwt_identity()
 
+    if not isinstance(contact_number, int):
+        return jsonify({"msg": "Contact number must be an uinteger", "response":"failure",}), 400
     if not contact_number:
         return jsonify({"msg": "Contact number is required", "response":"failure",}), 400
-    if len(contact_number) > 10 :
+    if len(contact_number) > 10 or len(contact_number) < 10 :
         return jsonify({"msg": "Not a valid number", "response": "failure"}), 400
     contact_number = '+91' + contact_number
     cursor = connection.cursor()
