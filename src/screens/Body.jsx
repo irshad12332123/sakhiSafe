@@ -1,17 +1,18 @@
-import {View, Text, Alert, Pressable} from 'react-native';
-import React from 'react';
+import {View, Text, Alert, Pressable, ActivityIndicator} from 'react-native';
+import {React, useState} from 'react';
 import CustomButton from '../compnents/CustomButton.jsx/CustomButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useAuth} from '../compnents/auth/AuthContext';
 
 const Body = ({location}) => {
   const {logOut} = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const onLogOutPressed = async () => {
     logOut();
-    Alert.alert('Logged Out successfully');
   };
 
   const handleNotify = async () => {
+    setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('token');
       // Fetching the server with the endpoint notify
@@ -26,18 +27,40 @@ const Body = ({location}) => {
         });
         const data = await response.json();
         if (data.response === 'success') {
+          setIsLoading(false);
           Alert.alert('Message sent successfully!');
         } else {
           Alert.alert('Error sending message');
+          setIsLoading(false);
         }
       } else {
         Alert.alert('Unable to retrieve location');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error(error);
       Alert.alert('Error occurred while sending messages');
+      setIsLoading(false);
     }
   };
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'transparent',
+        }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View

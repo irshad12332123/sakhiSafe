@@ -18,6 +18,7 @@ export const AuthProvider = ({children}) => {
   };
 
   const logOut = async () => {
+    setIsLoading(true);
     await AsyncStorage.removeItem('token');
     setIsAuthenticated(false);
   };

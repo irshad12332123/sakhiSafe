@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   Image,
   StyleSheet,
+  ActivityIndicator,
   useWindowDimensions,
   ScrollView,
   Alert,
@@ -17,11 +18,13 @@ const SignUpScreen = ({navigation}) => {
   const [userPassword, setUserPassword] = useState('');
   const [userPasswordRepeat, setUserPasswordRepeat] = useState('');
   const [fieldsEmpty, setFieldsEmpty] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSignInPressed = () => {
     navigation.navigate('Sign In');
   };
   const onSignUpPressed = async () => {
+    setIsLoading(true);
     const response = await fetch('http://10.0.2.2:5000/register', {
       method: 'POST',
       headers: {
@@ -31,9 +34,13 @@ const SignUpScreen = ({navigation}) => {
     });
 
     const data = await response.json();
-    data.response === 'success'
-      ? navigation.navigate('Sign In')
-      : setFieldsEmpty(data.msg);
+    if (data.response === 'success') {
+      navigation.navigate('Sign In');
+      setIsLoading(false);
+    } else {
+      setFieldsEmpty(data.msg);
+      setIsLoading(false);
+    }
   };
   const onTermsOfUsePressed = () => {
     console.warn('terms of use');
@@ -41,6 +48,15 @@ const SignUpScreen = ({navigation}) => {
   const onPrivacyPolicyPressed = () => {
     console.warn('privacy policy');
   };
+
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView>
       <SafeAreaView>

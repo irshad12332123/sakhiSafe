@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, Image, Alert} from 'react-native';
+import {View, Text, StyleSheet, Image, ActivityIndicator} from 'react-native';
 import React, {useState} from 'react';
 import userProfileLogo from '../../assets/images/user_profile_icon.png';
 import CustomInput from '../compnents/customInput';
@@ -8,11 +8,13 @@ import {useAuth} from '../compnents/auth/AuthContext';
 
 const Header = () => {
   const [contactNumber, setContactNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [responseMsg, setResponseMsg] = useState(null);
   const {name} = useAuth();
   console.log(name);
 
   const onAddContactPressed = async () => {
+    setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch('http://10.0.2.2:5000/add-contact', {
@@ -27,14 +29,25 @@ const Header = () => {
       const data = await response.json();
 
       if (data.response === 'failure') {
+        setIsLoading(false);
         setResponseMsg(data.msg);
       } else if (data.response === 'success') {
         setResponseMsg(data.msg);
+        setIsLoading(false);
       }
     } catch (error) {
       setResponseMsg("'Something went wrong. Please try again later.");
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -62,7 +75,7 @@ const Header = () => {
         <Text
           style={{
             color: '#2d3f46',
-            fontWeight: 700,
+            fontWeight: '700',
           }}>
           {responseMsg}
         </Text>
@@ -78,6 +91,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginBottom: 20,
     alignItems: 'center',
+    minHeight: 250,
+    justifyContent: 'center',
   },
   headerContent: {
     flexDirection: 'row',
@@ -102,7 +117,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
   },
 });
-
 export default Header;

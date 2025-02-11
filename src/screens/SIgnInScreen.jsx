@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {
   View,
-  Alert,
+  ActivityIndicator,
   ScrollView,
   SafeAreaView,
   Image,
@@ -18,12 +18,14 @@ const SIgnInScreen = ({navigation}) => {
   const [userName, setUserName] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const {logIn, setName} = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSignUpPressed = () => {
     navigation.navigate('Sign Up');
   };
 
   const onSignInPressed = async () => {
+    setIsLoading(true);
     const response = await fetch('http://10.0.2.2:5000/login', {
       method: 'POST',
       headers: {
@@ -38,12 +40,21 @@ const SIgnInScreen = ({navigation}) => {
       await AsyncStorage.setItem('token', data.token);
       await AsyncStorage.setItem('user_id', data.user_id.toString());
       logIn();
+      setIsLoading(false);
       setName(data['user_name']);
       // console.log(data['user_name']);
     } else {
+      setIsLoading(false);
       setResponseMsg(data.msg);
     }
   };
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView>
