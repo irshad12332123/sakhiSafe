@@ -5,6 +5,7 @@ import {
   ScrollView,
   SafeAreaView,
   Image,
+  Text,
   StyleSheet,
 } from 'react-native';
 import CustomInput from '../compnents/customInput';
@@ -12,6 +13,8 @@ import CustomButton from '../compnents/CustomButton.jsx/CustomButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../assets/images/Logo_1.png';
 import {useAuth} from '../compnents/auth/AuthContext';
+import LinearGradient from 'react-native-linear-gradient';
+import GradientButton from '../compnents/CustomButton.jsx/GradientButton';
 
 const SIgnInScreen = ({navigation}) => {
   const [responseMsg, setResponseMsg] = useState(null);
@@ -58,8 +61,42 @@ const SIgnInScreen = ({navigation}) => {
 
   return (
     <ScrollView>
+      {/* <Image source={Logo} style={styles.logo} resizeMode="contain" /> */}
+      <LinearGradient
+        colors={['#ff5722', '#FAD02B']} // Gradient colors
+        style={styles.gradient} // Apply style to the gradient
+        start={{x: 0, y: 0}} // Gradient start point (top left)
+        end={{x: 0, y: 1}} // Gradient end point (bottom right)
+      >
+        <View
+          style={{
+            minHeight: 300,
+            width: '100%',
+            flex: 1,
+            padding: '40',
+            justifyContent: 'flex-end',
+            // backgroundColor: 'red',
+          }}>
+          <Text
+            style={{
+              fontFamily: 'Poppins-Regular',
+              fontSize: 30,
+              color: '#cc451b',
+              fontWeight: '900',
+            }}>
+            Sign In
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'Poppins-Regular',
+              fontWeight: '900',
+              color: '#d15731',
+            }}>
+            We care for your safety
+          </Text>
+        </View>
+      </LinearGradient>
       <SafeAreaView style={styles.root}>
-        <Image source={Logo} style={styles.logo} resizeMode="contain" />
         <CustomInput
           value={userName}
           setValue={setUserName}
@@ -72,12 +109,7 @@ const SIgnInScreen = ({navigation}) => {
           secureTextEntry
         />
         {responseMsg ? <CustomButton text={responseMsg} type="DANGER" /> : null}
-        <CustomButton text="Sign In" onPress={onSignInPressed} />
-        <CustomButton
-          text="Forgot Password"
-          onPress={() => navigation.navigate('Forgot Password')}
-          type="DANGER"
-        />
+        <GradientButton onPress={onSignInPressed} text={'Sign In'} />
         <CustomButton
           text="Don't have an account? Create one"
           type="TERTIARY"
@@ -90,9 +122,17 @@ const SIgnInScreen = ({navigation}) => {
 
 const styles = StyleSheet.create({
   root: {
+    minHeight: '100%',
     alignItems: 'center',
-    backgroundColor: '#d6e4ea',
-    padding: 50,
+    padding: 40,
+  },
+  gradient: {
+    flex: 1,
+    justifyContent: 'center',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    boxShadow: '0 0 50 50 rgb(255, 234, 148)',
+    alignItems: 'center',
   },
   logo: {
     width: '100%',

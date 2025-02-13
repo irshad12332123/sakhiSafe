@@ -1,26 +1,36 @@
 import {View, Text, StyleSheet, Pressable} from 'react-native';
 import React from 'react';
-
-const CustomButton = ({onPress, text, type = 'PRIMARY'}) => {
+import LinearGradient from 'react-native-linear-gradient';
+const GradientButton = ({onPress, text, type = 'PRIMARY'}) => {
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.container, styles[`container_${type}`]]}>
-      <Text style={[styles.text, styles[`text_${type}`]]}>{text}</Text>
-    </Pressable>
+    <LinearGradient
+      colors={['#ff5722', '#FAD02B']} // Gradient colors
+      style={styles.gradient} // Apply style to the gradient
+      start={{x: 0, y: 1}} // Gradient start point (top left)
+      end={{x: 1, y: 1}} // Gradient end point (bottom right)
+    >
+      <Pressable
+        onPress={onPress}
+        style={[styles.container, styles[`container_${type}`]]}>
+        <Text style={[styles.text, styles[`text_${type}`]]}>{text}</Text>
+      </Pressable>
+    </LinearGradient>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     padding: 14,
-    width: '100%',
     marginVertical: 5,
     alignItems: 'center',
-    borderRadius: 10,
+    justifyContent: 'center',
+  },
+  gradient: {
+    marginVertical: 5,
+    borderRadius: 30,
+    width: '100%',
   },
   container_PRIMARY: {
-    backgroundColor: '#548294',
+    // backgroundColor: '#548294',
   },
   container_FANCY: {
     width: '25%',
@@ -59,5 +69,4 @@ const styles = StyleSheet.create({
     fontSize: 25,
   },
 });
-
-export default CustomButton;
+export default GradientButton;

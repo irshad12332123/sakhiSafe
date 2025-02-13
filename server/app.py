@@ -33,11 +33,6 @@ twilio_phone_number = os.getenv('twilio_phone_number')
 
 client = Client(account_sid, auth_token)
 
-
-@app.route('/api/data', methods=['GET'])
-def get_data():
-    return jsonify({"message": "Welcome to The App"})
-
 # Various endpoints
 
 @app.route('/notify', methods=['POST'])
@@ -102,19 +97,17 @@ def login():
     
     cursor = connection.cursor(dictionary=True)
 
-    # Update the query to also select the user_password
     query = "SELECT user_id, user_password FROM user_records WHERE user_name = %s LIMIT 1"
     cursor.execute(query, (name,))
     user = cursor.fetchone()
      
     cursor.close()
-
-    if user and bcrypt.checkpw(password.encode('utf-8'), user['user_password'].encode('utf-8')):
-        # Correct password, generate the JWT token
-        access_token = create_access_token(identity=str(user['user_id']))
-        return jsonify({"token": access_token, "user_id": user['user_id'], "user_name": name.capitalize()}), 200
-    
-    # If no match found or password is incorrect
+    try:
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['user_password'].encode('utf-8')):
+            access_token = create_access_token(identity=str(user['user_id']))
+            return jsonify({"token": access_token, "user_id": user['user_id'], "user_name": name.capitalize()}), 200
+    except Exception as e:
+         return jsonify({"msg": f"Some error occured !", "response": "failure"}), 401
     return jsonify({"msg": "Either username or password is invalid", "response": "failure"}), 401
 
 
@@ -124,12 +117,21 @@ def login():
 def add_contact():
     data = request.json
     contact_number = data.get('contact_number')
+
+    try:
+        contact_number = int(contact_number)
+    except Exception as e:
+        return jsonify({"msg": "Contact number should be an integer", "rsponse": "failure"}), 400
+
+    contact_number = str(contact_number)
+
     user_id = get_jwt_identity()
 
-    if not isinstance(contact_number, int):
-        return jsonify({"msg": "Contact number must be an uinteger", "response":"failure",}), 400
     if not contact_number:
         return jsonify({"msg": "Contact number is required", "response":"failure",}), 400
+    
+
+    
     if len(contact_number) > 10 or len(contact_number) < 10 :
         return jsonify({"msg": "Not a valid number", "response": "failure"}), 400
     contact_number = '+91' + contact_number
